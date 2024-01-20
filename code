@@ -1,1 +1,63 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace trubky
+{
+    class Program
+    {
+        static double VypocetDelkyTrubek(int a, int x1, int y1, int z1, int x2, int y2, int z2)
+        {
+            return Math.Abs(x2 - x1) + Math.Abs(y2 - y1) + Math.Abs(z2 - z1) + 2 * a;
+        }
+
+        static double VypocetDelkyHadice(int a, int x1, int y1, int z1, int x2, int y2, int z2)
+        {
+            return Math.Sqrt(Math.Pow(x2 - x1, 2) + Math.Pow(y2 - y1, 2) + Math.Pow(z2 - z1, 2)) + 2 * a;
+        }
+
+        static int NactiSouřadnici(string nazev, int a)
+        {
+            Console.Write($"Zadejte souradnici {nazev}: ");
+            if (!int.TryParse(Console.ReadLine(), out int souradnice) || Math.Abs(souradnice) > a || Math.Abs(souradnice) < 20)
+            {
+                Console.WriteLine("Chybny vstup.");
+                Environment.Exit(1);
+            }
+            return souradnice;
+        }
+
+        static void Main()
+        {
+            // Načtení velikosti místnosti
+            Console.Write("Zadejte velikost mistnosti (a): ");
+            if (!int.TryParse(Console.ReadLine(), out int a) || a <= 0)
+            {
+                Console.WriteLine("Chybny vstup.");
+                return;
+            }
+
+            // Načtení bodů
+            int x1 = NactiSouřadnici("x1", a);
+            int y1 = NactiSouřadnici("y1", a);
+            int z1 = NactiSouřadnici("z1", a);
+
+            int x2 = NactiSouřadnici("x2", a);
+            int y2 = NactiSouřadnici("y2", a);
+            int z2 = NactiSouřadnici("z2", a);
+
+            // Výpočet délky trubek a hadice
+            double delkaTrubek = VypocetDelkyTrubek(a, x1, y1, z1, x2, y2, z2);
+            double delkaHadice = VypocetDelkyHadice(a, x1, y1, z1, x2, y2, z2);
+
+            // Výpis výsledků
+            Console.WriteLine($"Potrebna delka trubek: {delkaTrubek:F2}");
+            Console.WriteLine($"Potrebna delka hadice: {delkaHadice:F2}");
+
+            Console.ReadLine();
+        }
+    }
+}
 
