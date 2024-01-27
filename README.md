@@ -1,2 +1,2 @@
-# Pva-1.-uloha
-trubky
+# PVA úlohy
+úkoly na PVA
