@@ -1,0 +1,76 @@
+using System;
+
+namespace Palindromy
+{
+    internal class Program
+    {
+        public static void Main(string[] args)
+        {
+            // Načtení vstupních dat od uživatele
+            Console.WriteLine("Definujte základní číslo:");
+            long from = Int64.Parse(Console.ReadLine());
+
+            Console.WriteLine("Definujte číselnou soustavu, ve které chcete najít palindrom:");
+            int radix = int.Parse(Console.ReadLine());
+
+            // Vyvolání metody pro nalezení dalšího palindromu
+            long next;
+            if (FindNextPalindrome(from, radix, out next))
+            {
+                Console.WriteLine($"Nalezený palindrom v soustavě {radix} větší než {from}: {next}");
+            }
+            else
+            {
+                Console.WriteLine($"Nepodařilo se najít palindrom v soustavě {radix} větší než {from}.");
+            }
+
+            Console.ReadKey();
+        }
+
+        // Metoda pro ověření, zda je číslo palindrom
+        public static bool IsPalindrome(long number, int baseNumber)
+        {
+            long reversedNumber = 0;
+            long originalNumber = number;
+
+            // Inverze čísla v dané číselné soustavě
+            while (number > 0)
+            {
+                reversedNumber = reversedNumber * baseNumber + number % baseNumber;
+                number /= baseNumber;
+            }
+
+            // Porovnání inverze s původním číslem
+            return reversedNumber == originalNumber;
+        }
+
+        // Metoda pro nalezení nejbližšího většího palindromu
+        public static bool FindNextPalindrome(long fromNumber, int baseNumber, out long nextPalindrome)
+        {
+            nextPalindrome = 0;
+
+            // Kontrola platnosti číselné soustavy
+            if (baseNumber < 2 || baseNumber > 36)
+            {
+                Console.WriteLine("Neplatná číselná soustava.");
+                return false;
+            }
+
+            long currentNumber = fromNumber + 1; // Začínáme hledání od následujícího čísla
+
+            while (currentNumber > fromNumber)
+            {
+                // Pokud je aktuální číslo palindrom, uložíme ho a ukončíme hledání
+                if (IsPalindrome(currentNumber, baseNumber))
+                {
+                    nextPalindrome = currentNumber;
+                    return true;
+                }
+                currentNumber++;
+            }
+
+            Console.WriteLine("Nelze nalézt palindrom větší než definované číslo.");
+            return false;
+        }
+    }
+}
