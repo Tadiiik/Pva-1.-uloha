@@ -1,0 +1,199 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+class Program
+{
+    static void Main()
+    {
+        try
+        {
+            var inputLines = ReadInput();
+            if (inputLines.Count == 0)
+            {
+                throw new Exception();
+            }
+
+            var (shelves, shoppingLists) = LoadData(inputLines);
+            ProcessShoppingLists(shelves, shoppingLists);
+        }
+        catch
+        {
+            Console.WriteLine("Nesprávný vstup.");
+            Environment.Exit(1);
+        }
+    }
+
+    static List<string> ReadInput()
+    {
+        var inputLines = new List<string>();
+        string line;
+        while ((line = Console.ReadLine()) != null)
+        {
+            inputLines.Add(line);
+        }
+        return inputLines;
+    }
+
+    static void ProcessShoppingLists(Dictionary<int, List<string>> shelves, List<List<string>> shoppingLists)
+    {
+        foreach (var shoppingList in shoppingLists)
+        {
+            Console.WriteLine("Optimalizovaný seznam:");
+            var optimizedList = OptimizeShoppingList(shelves, shoppingList);
+            PrintOptimizedList(optimizedList);
+            Console.WriteLine();
+        }
+        Console.ReadKey();
+    }
+
+    static void PrintOptimizedList(List<(string Item, string ShelfId, string ShelfItem)> optimizedList)
+    {
+        for (int idx = 0; idx < optimizedList.Count; idx++)
+        {
+            var (item, shelfId, shelfItem) = optimizedList[idx];
+            if (shelfId == "N/A")
+            {
+                Console.WriteLine($" {idx}. {item} -> {shelfId}");
+            }
+            else
+            {
+                Console.WriteLine($" {idx}. {item} -> #{shelfId} {shelfItem}");
+            }
+        }
+    }
+
+    static (Dictionary<int, List<string>>, List<List<string>>) LoadData(List<string> lines)
+    {
+        var shelves = new Dictionary<int, List<string>>();
+        var shoppingLists = new List<List<string>>();
+        int i = 0;
+
+        try
+        {
+            i = LoadShelves(lines, shelves, i);
+            i = LoadShoppingLists(lines, shoppingLists, i);
+        }
+        catch
+        {
+            Console.WriteLine("Nesprávný vstup");
+            Console.ReadKey();
+            throw;
+        }
+
+        return (shelves, shoppingLists);
+    }
+
+    static int LoadShelves(List<string> lines, Dictionary<int, List<string>> shelves, int i)
+    {
+        while (i < lines.Count && !string.IsNullOrWhiteSpace(lines[i]))
+        {
+            if (lines[i].StartsWith("#"))
+            {
+                int shelfId = int.Parse(lines[i].Substring(1));
+                if (shelfId != shelves.Count)
+                {
+                    throw new Exception();
+                }
+                shelves[shelfId] = new List<string>();
+                i++;
+                while (i < lines.Count && !string.IsNullOrWhiteSpace(lines[i]) && !lines[i].StartsWith("#"))
+                {
+                    shelves[shelfId].Add(lines[i].Trim());
+                    i++;
+                }
+            }
+            else
+            {
+                throw new Exception();
+            }
+        }
+
+        if (i == lines.Count || !string.IsNullOrWhiteSpace(lines[i]))
+        {
+            throw new Exception();
+        }
+
+        return ++i;
+    }
+
+    static int LoadShoppingLists(List<string> lines, List<List<string>> shoppingLists, int i)
+    {
+        var currentList = new List<string>();
+
+        while (i < lines.Count)
+        {
+            if (!string.IsNullOrWhiteSpace(lines[i]))
+            {
+                currentList.Add(lines[i].Trim());
+            }
+            else
+            {
+                if (currentList.Count > 0)
+                {
+                    shoppingLists.Add(new List<string>(currentList));
+                    currentList.Clear();
+                }
+            }
+            i++;
+        }
+        if (currentList.Count > 0)
+        {
+            shoppingLists.Add(currentList);
+        }
+
+        return i;
+    }
+
+    static (int, string) FindItemInShelves(Dictionary<int, List<string>> shelves, string item)
+    {
+        foreach (var shelf in shelves)
+        {
+            foreach (var shelfItem in shelf.Value)
+            {
+                if (string.Equals(item, shelfItem, StringComparison.OrdinalIgnoreCase))
+                {
+                    return (shelf.Key, shelfItem);
+                }
+            }
+        }
+
+        foreach (var shelf in shelves)
+        {
+            foreach (var shelfItem in shelf.Value)
+            {
+                if (shelfItem.IndexOf(item, StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    return (shelf.Key, shelfItem);
+                }
+            }
+        }
+
+        return (-1, null);
+    }
+
+    static List<(string Item, string ShelfId, string ShelfItem)> OptimizeShoppingList(Dictionary<int, List<string>> shelves, List<string> shoppingList)
+    {
+        var foundItems = new List<(string Item, int ShelfId, string ShelfItem)>();
+        var notFoundItems = new List<(string Item, string ShelfId, string ShelfItem)>();
+
+        foreach (var item in shoppingList)
+        {
+            var foundItem = FindItemInShelves(shelves, item);
+            if (foundItem.Item1 != -1)
+            {
+                foundItems.Add((item, foundItem.Item1, foundItem.Item2));
+            }
+            else
+            {
+                notFoundItems.Add((item, "N/A", ""));
+            }
+        }
+
+        foundItems = foundItems.OrderBy(x => x.ShelfId).ThenBy(x => shoppingList.IndexOf(x.Item)).ToList();
+        var optimizedList = foundItems.Select(x => (x.Item, x.ShelfId.ToString(), x.ShelfItem)).ToList();
+        optimizedList.AddRange(notFoundItems);
+
+        return optimizedList;
+    }
+}
